@@ -1,0 +1,29 @@
+{
+  "name": "square-headless-shopping-cart",
+  "version": "0.0.2",
+  "private": true,
+  "scripts": {
+    "start": "NODE_ENV=production nodemon -e js -r esm ./bin/www",
+    "test": "NODE_ENV=sandbox nodemon -e js -r esm ./bin/www",
+    "seed": "NODE_ENV=sandbox node -r esm ./bin/script/seed-catalog.js generate",
+    "clear": "NODE_ENV=sandbox node -r esm ./bin/script/seed-catalog.js clear",
+    "help": "NODE_ENV=sandbox node -r esm ./bin/script/seed-catalog.js --help"
+  },
+  "dependencies": {
+    "body-parser": "*",
+    "cookie-parser": "*",
+    "cors": "^2.8.5",
+    "debug": "^4.3.1",
+    "dotenv": "^8.2.0",
+    "eslint": "^6.1.0",
+    "esm": "^3.2.25",
+    "express": "*",
+    "morgan": "*",
+    "request": "^2.88.0",
+    "serve-favicon": "*",
+    "square": "^8.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.0"
+  }
+}
