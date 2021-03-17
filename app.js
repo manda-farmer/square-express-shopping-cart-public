@@ -20,6 +20,7 @@ import path from 'path';
 import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 import bodyParser from 'body-parser';
+import JSONBig from 'json-bigint';
 import cors from 'cors';
 import router from './routes/index';
 import cart from './routes/cart';
@@ -31,14 +32,12 @@ const app = express();
 
 app.use(logger("dev"));
 app.use(bodyParser.json());
+app.set('json spaces', 2);
 app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, ".well-known")));
-// Used to allow connection via a local ReactJS front-end
-// Replace with your front-end's URL, or this app's URL
-// if you're just testing with cURL
 app.use(cors({origin: 'http://localhost:3000'}));
 app.use("/", router);
 app.use("/cart", cart);
@@ -59,7 +58,7 @@ app.use(function (err, req, res, next) {
     status: err.status,
     message: err.message,
     // If it is a response error then format the JSON string, if not output the error
-    error: err.errors ? JSON.stringify(err.errors, null, 4) : err.stack
+    error: err.errors ? JSON.stringify(JSONBig.parse(JSONBig.stringify(err.errors, null, 4))) : err.stack
   });
 });
 

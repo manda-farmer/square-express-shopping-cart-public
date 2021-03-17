@@ -8,8 +8,10 @@ Defines a class that abstracts the data for both a CatalogItem and its associate
 
 ## catalog-list.js
 
-Defines a class that abstracts the data for both a CatalogList and its associated [CatalogImage](https://developer.squareup.com/reference/square/objects/CatalogImage). 
+Defines a class that abstracts the data for both a CatalogList and its associated [CatalogImage](https://developer.squareup.com/reference/square/objects/CatalogImage), parsing BitInts to strings. 
 
+## cart.js
+Defines a class that updates and retrieves orders, while parsing BigInt values to strings.
 
 
 

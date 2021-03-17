@@ -21,7 +21,7 @@ import { Client, Environment, FileWrapper } from 'square';
 import sampleData from './sample-seed-data.json';
 import fs from 'fs';
 import readline from 'readline';
-require('dotenv').config();
+import 'dotenv/config';
 
 // We don't recommend to run this script in production environment
 // Configure OAuth2 access token for authorization: oauth2

@@ -15,9 +15,11 @@ limitations under the License.
 */
 
 import express from 'express';
+import JSONBig from 'json-bigint';
 
-import { randomBytes } from 'crypto';
 import { ordersApi } from '../util/square-client';
+import { randomBytes } from 'crypto';
+import { Cart } from '../models/cart';
 
 const router = express.Router();
 
@@ -29,11 +31,11 @@ const router = express.Router();
  *  This handles potential refresh issues on the front end, and can be used
  *  for order confirmation on the checkout page. It's also useful for abstracting
  *  data to the front-end, and only requires making use of the built-in 
- *  retriveOrder() function from client.ordersApi. 
+ *  retriveOrder() function from client.ordersApi, which is parsed via Cart(orderId).info(). 
  *  Learn more about Orders here: https://developer.squareup.com/docs/orders-api/what-it-does
  *
  *  Once the order has been successfully created, the order's information is
- *  returned with res.send({}). This allows for shopping cart data that is 
+ *  returned with res.json({}). This allows for shopping cart data that is 
  *  pre-sync'd with Square's API, and updates in real-time.
  * 
  * Request Body:
@@ -43,7 +45,12 @@ router.post("/order-info", async (req, res, next) => {
     const {orderId} = req.body;
     try {
       const { result: { order } } = await ordersApi.retrieveOrder(orderId);
-      res.send({orderInfo: order});
+      const orderParsed = JSONBig.parse(JSONBig.stringify(order));
+      //const cart = new Cart(orderId, null);
+      //const order = await cart.info();
+      res.json({
+        orderInfo: orderParsed
+      });
     } catch (error) {
       next(error);
     }
@@ -57,7 +64,7 @@ router.post("/order-info", async (req, res, next) => {
  *  Learn more about Orders here: https://developer.squareup.com/docs/orders-api/what-it-does
  *
  *  Once the order has been successfully updated, the order's information is
- *  returned with res.send({}). This allows for shopping cart data that is 
+ *  returned with res.json({}). This allows for shopping cart data that is 
  *  pre-sync'd with Square's API, and updates in real-time.
  * 
  * Request Body:
@@ -85,10 +92,11 @@ router.post("/update-order-add-item", async (req, res, next) => {
         version
       }
     };
-    const { result: { order } } = await ordersApi.updateOrder(`${orderId}`,orderRequestBody);
-    res.send(
+    const changeCart = new Cart(orderId, orderRequestBody);
+    const order = await changeCart.update();
+    res.json(
       {
-          result: "Success! Order updated!",
+          result: "Success!",
           order: order
         })
   } catch (error) {
@@ -105,7 +113,7 @@ router.post("/update-order-add-item", async (req, res, next) => {
  *  Learn more about Orders here: https://developer.squareup.com/docs/orders-api/what-it-does
  *
  *  Once the item quantity has been successfully modified, the updated order's 
- *  information is returned with res.send({updatedOrder}). Items are not fully 
+ *  information is returned with res.json({updatedOrder}). Items are not fully 
  *  removed by setting itemQuantity to 0. While it bears no impact on the order's
  *  total, the item still retains a uid in the cart, in case the customer wants
  *  to re-add another quantity later. This allows for syncronous replication of  
@@ -123,10 +131,10 @@ router.post("/update-order-item-quantity", async (req, res, next) => {
       locationId,
       orderId,
       itemUid,
-      itemQuantity,
-      version
+      itemQuantity
     } = req.body;
     try {
+      let { result: order } = await ordersApi.retrieveOrder(orderId);
       const orderRequestBody = {
         order: {
           locationId,
@@ -134,12 +142,13 @@ router.post("/update-order-item-quantity", async (req, res, next) => {
             uid: itemUid,  // ID for orderItem object
             quantity: itemQuantity,
           }],
-          version,
-          idempotencyKey: randomBytes(45).toString("hex"), // Unique identifier for request
-        }
+          version: order.version
+        },
+        idempotencyKey: randomBytes(45).toString("hex"), // Unique identifier for request
       };
-      const { result: { order } } = await ordersApi.updateOrder(`${orderId}`,orderRequestBody);
-      res.send(  
+      const changeCart = new Cart(orderId, orderRequestBody);
+      order = await changeCart.update();
+      res.json(  
         {
             result: "Success! Order updated!",
             updatedOrder: order
@@ -149,5 +158,63 @@ router.post("/update-order-item-quantity", async (req, res, next) => {
     }
   });
 
+router.post("/update-order-remove-item", async (req, res, next) => {
+  const {
+      locationId,
+      orderId,
+      itemUid
+  } = req.body;
+  try {
+    let {result : order } =  await ordersApi.retrieveOrder(orderId);
+    const orderRequestBody = {
+      order: {
+        locationId,
+        version: order.version
+      },
+      fieldsToClear: [
+        `line_items[${itemUid}]`
+      ],
+      idempotencyKey: randomBytes(45).toString("hex"), // Unique identifier for request
+    };
+    const removeItem = new Cart(orderId, orderRequestBody);
+    order = await removeItem.update();
+    res.json(  
+      {
+          result: "Success! Item removed!",
+          updatedOrder: order
+        })
+    } catch (error) {
+      next(error);
+    }
+  });
+
+router.post("/update-order-empty-cart", async (req, res, next) => {
+  const {
+      locationId,
+      orderId
+  } = req.body;
+  try {
+    let {result : order } =  await ordersApi.retrieveOrder(orderId);
+    const orderRequestBody = {
+      order: {
+        locationId,
+        version: order.version
+      },
+      fieldsToClear: [
+        'line_items'
+      ],
+      idempotencyKey: randomBytes(45).toString("hex"), // Unique identifier for request
+    };
+    const emptyCart = new Cart(orderId, orderRequestBody);
+    order = await emptyCart.update();
+    res.json(  
+      {
+          result: "Success! Cart is empty!",
+          updatedOrder: order
+        })
+    } catch (error) {
+      next(error);
+    }
+  });
 
 export default router;

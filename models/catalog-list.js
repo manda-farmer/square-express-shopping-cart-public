@@ -13,19 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import JSONBig from 'json-bigint';
 
 import CatalogItem from './catalog-item';
 
 /**
  * Description:
- *  An instance of this CatalogList provides the catalog list data to render
- *  views/index.pug
+ *  An instance of this CatalogList provides the catalog list data to respond
+ *  an easy-to-map array.
  *
  * Parameters:
  *  objects:  Array of Catalog objects returned from ListCatalog api
  *
- * Learn more about the ListCatalog api here: https://developer.squareup.com/reference/square/catalog-api/list-catalog
- *
+ * Learn more about the ListCatalog api here: 
+ *  https://developer.squareup.com/reference/square/catalog-api/list-catalog
  */
 class CatalogList {
   constructor(catalogList) {
@@ -53,7 +54,8 @@ class CatalogList {
     // Reassigns this.items to be an array of CatalogItem instances
     this.items = catalogItemObjects.map(item => {
       const imageObject = catalogImageObjectsMap[item.imageId];
-      return new CatalogItem(item, imageObject);
+      const bigInt = new CatalogItem(item, imageObject);
+      return JSONBig.parse(JSONBig.stringify(bigInt));
     });
   }
 }

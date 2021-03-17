@@ -20,7 +20,8 @@ The routes in here contain the necessary functions for manipulating an order, pr
 
 This file matches any requests with `./checkout/*` in the base of the relative path of the url.
 
-add-delivery-details route populates the fulfillment details with type "SHIPMENT" and necessary address information.
+The `add-delivery-details` route populates the fulfillment details with type "SHIPMENT" and necessary address information.
 
-payment takes the nonce generated from a payment form, with corresponding orderId and captures payment.
+The `payment` route takes the nonce generated from a payment form, with corresponding orderId and captures payment. 
 
+The `create-invoice` route creates an invoice from the orderId. The created invoice is not published.

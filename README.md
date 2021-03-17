@@ -5,19 +5,12 @@
   - [Application flow](#application-flow)
 
 This is a backend server that makes use of the latest [Square NodeJS SDK](https://github.com/square/square-nodejs-sdk).
-It is essentially a headless version of the [Order-Ahead Sample App](https://github.com/square/connect-api-examples/blob/master/connect-examples/v2/node_orders-payments) that
-has been updated to use ES6 imports. For backwards compatibility, the
-esm module has been added as a require when starting node. If you are
-using [NodeJS v15.3.0 =<](https://nodejs.org/docs/latest-v15.x/api/esm.html), then you can remove
-this dependency from your package lock and package.json files, including 
-the `-r ems` in the start and test scripts. 
-The application uses the following Square APIs for synchronicity, and in lieu of a back-end database:
+It is essentially a headless version of the [Order-Ahead Sample App](https://github.com/square/connect-api-examples/blob/master/connect-examples/v2/node_orders-payments) that has been updated to use ES6 imports. For backwards compatibility, the esm module has been added as a require when starting node. If you are using [NodeJS v15.3.0 =<](https://nodejs.org/docs/latest-v15.x/api/esm.html), then you can remove this dependency from your package lock and package.json files, including the `-r ems` in the start and test scripts, so long as you properly configure package.json with appropriate extension and target information. The application uses the following Square APIs for synchronicity, and in lieu of a back-end database:
 
 *   [Orders API](https://developer.squareup.com/reference/square/orders-api) to manage orders.
 *   [Payments API](https://developer.squareup.com/reference/square/payments-api) to process payments.
-    The application also uses the Square-provided JavaScript library to include a payment form.
 *   [Catalog API](https://developer.squareup.com/reference/square/catalog-api) to manage the catalog of food items you sell.
-    Square provide a script for you to prepopulate catalog items, variations, categories, and taxes.
+    Square provides a script for you to prepopulate catalog items, variations, categories, and taxes.
 
 After processing payment, the seller can then fulfill the order. The seller can view paid orders on the Seller Dashboard
 or receive order information on the Square Point of Sale mobile app (after processing the payment, Square sends the order
@@ -46,23 +39,19 @@ Instead, you use a fake card that Square provides for the Sandbox environment.
     to safely manage access to Square accounts. 
 
 1. Open your terminal and install the sample application's dependencies with the command:
-    ```
+    ```bash
     npm install --save
-    ```
-    or, if you prefer yarn, there is an included yarn.lock file
-    ```
-    yarn install
     ```
 
 1. Test the app.
 
     Run the server with your production credentials
     **NOT RECOMMENDED**:
-    ```
+    ```bash
     npm start
     ```
     Run the server with your sandbox credentials:
-    ```
+    ```bash
     npm test
     ```
 
@@ -73,8 +62,9 @@ all of the response data into a front end out-of-the-box.
 1. [Optional] Square also provides a script you can use to quickly populate your sandbox store's catalog
 with test items. Run the script and then fetch the catalog with cURL to confirm:
 
-    ```
-    npm run seed; curl http://localhost:3001
+    ```bash
+    npm run seed 
+    curl http://localhost:3001
     ```
 
 ## Project organization
@@ -112,12 +102,12 @@ the full catalog via [catalog-list.js](models/catalog-list.js), and locationId(s
       into `CatalogList()` from the catalog-list.js model. 
 
     Let's try it out! Send a cURL request to the application's URL, `http://localhost:3001`: 
-    ```
+    ```console
     curl http://localhost:3001
     ```
     To better illustrate the flow, we will be working with the following catalog item object for the
 duration of this document. 
-    ```
+    ```json
     {
         "locationId":"LT2DV63WPWFKK",
         {
@@ -185,7 +175,7 @@ and populates `orderRequestBody` the appropriate fields, generating a unique ide
 The contents of `orderRequestBody` are then sent to Square via the NodeJS SDK's [ordersApi.createOrder](routes/index.js#85) function,
 and the controller [responds with the full order object](routes/index.js#86).
 
-    ```
+    ```javascript
     itemVarId,
     itemQuantity,
     locationId
@@ -196,115 +186,243 @@ and the controller [responds with the full order object](routes/index.js#86).
 
     Now we can create our own order with the example above, using the /create-order controller.
     Take note of the following:
-    * **No dashboard** Orders are ONLY visible through the app that you are running, until payment has been captured AND fulfillment
-details have been added. Until both of these requirements are met, you will not be able to view the order in your
-sandbox dashboard
+    * **No dashboard** Orders are ONLY visible through the app that you are running, until payment has been captured AND fulfillment details have been added. Until both of these requirements are met, you will not be able to view the order in your sandbox dashboard
     * **IDs are placeholders** Each ID that Square provides is unique across the entire ecosystem. The examples I am giving will NOT work in your
     application, so be sure to replace the example values with IDs from your application.
 
     With that in mind, let's create an order by sending a POST request to the server with itemVarId, an itemQuantity, and locationId:
 
-    ```
-    curl -X POST http://localhost:3001/create-order \
-    -d "itemVarId=YCUUZCAUZIPBQFZHF6YOZNEK&\
-    itemQuantity=1&\
-    locationId=LT2DV63WPWFKK"
+    ```bash
+    curl -X POST http://localhost:3001/create-order -d "itemVarId=LMT7BZGYJSHVFUZWVJHTNYJV&itemQuantity=1&locationId=ZM4H2ZE597J7A"
     ```
 
     If everything goes according to plan, you should be rewarded with an order object:
 
-    ```
+    ```json
     {
-    "result": "Success! Order created!",
-    "order": {
-        "id": "lpAKu16lRYVyLiofFWzXH8MvKwMZY",
-        "locationId": "LT2DV63WPWFKK",
+      "result": "Success! Order created!",
+      "order": {
+        "id": "mTRO3idc5wZx6NICzqFLWpRwqzUZY",
+        "locationId": "ZM4H2ZE597J7A",
         "source": {
-        "name": "Sandbox for square-express-shopping-cart"
+          "name": "Sandbox for square-express-shopping-cart"
         },
         "lineItems": [
-        {
-            "uid": "bs7ikzCZvWceKY4mx6b1FB",
-            "name": "Mediterranean Yogurt Bowl",
+          {
+            "uid": "RklCoCK9QwKd0nZHGKbHGC",
+            "name": "Bacon Cheeseburger",
             "quantity": "1",
-            "catalogObjectId": "YCUUZCAUZIPBQFZHF6YOZNEK",
+            "catalogObjectId": "LMT7BZGYJSHVFUZWVJHTNYJV",
             "variationName": "Regular",
             "basePriceMoney": {
-            "amount": 495,
-            "currency": "USD"
+              "amount": 995,
+              "currency": "USD"
             },
             "variationTotalPriceMoney": {
-            "amount": 495,
-            "currency": "USD"
+              "amount": 995,
+              "currency": "USD"
             },
             "grossSalesMoney": {
-            "amount": 495,
-            "currency": "USD"
+              "amount": 995,
+              "currency": "USD"
             },
             "totalTaxMoney": {
-            "amount": 0,
-            "currency": "USD"
+              "amount": 0,
+              "currency": "USD"
             },
             "totalDiscountMoney": {
-            "amount": 0,
-            "currency": "USD"
+              "amount": 0,
+              "currency": "USD"
             },
             "totalMoney": {
-            "amount": 495,
-            "currency": "USD"
+              "amount": 995,
+              "currency": "USD"
             }
-        }
+          }
         ],
         "netAmounts": {
-        "totalMoney": {
-            "amount": 495,
+          "totalMoney": {
+            "amount": 995,
             "currency": "USD"
-        },
-        "taxMoney": {
+          },
+          "taxMoney": {
             "amount": 0,
             "currency": "USD"
-        },
-        "discountMoney": {
+          },
+          "discountMoney": {
             "amount": 0,
             "currency": "USD"
-        },
-        "tipMoney": {
+          },
+          "tipMoney": {
             "amount": 0,
             "currency": "USD"
-        },
-        "serviceChargeMoney": {
+          },
+          "serviceChargeMoney": {
             "amount": 0,
             "currency": "USD"
-        }
+          }
         },
-        "createdAt": "2021-02-06T22:07:43.353Z",
-        "updatedAt": "2021-02-06T22:07:43.353Z",
+        "createdAt": "2021-03-01T02:55:57.764Z",
+        "updatedAt": "2021-03-01T02:55:57.764Z",
         "state": "OPEN",
         "version": 1,
         "totalMoney": {
-        "amount": 495,
-        "currency": "USD"
+          "amount": 995,
+          "currency": "USD"
         },
         "totalTaxMoney": {
-        "amount": 0,
-        "currency": "USD"
+          "amount": 0,
+          "currency": "USD"
         },
         "totalDiscountMoney": {
-        "amount": 0,
-        "currency": "USD"
+          "amount": 0,
+          "currency": "USD"
         },
         "totalTipMoney": {
-        "amount": 0,
-        "currency": "USD"
+          "amount": 0,
+          "currency": "USD"
         },
         "totalServiceChargeMoney": {
-        "amount": 0,
-        "currency": "USD"
+          "amount": 0,
+          "currency": "USD"
         }
-    }
+      }
     }
     ```
-    Take note of the tax amount - $0. Even though this object has a tax rate of 8.5%, tax is not calculated by
-the Square API.
-    * **TO DO** Add tax calculation to the checkout flow. For some reason, when it is done on [/create-order](routes/index.js#68),
-    all child lineItems have the same tax applied.
+    Take note of the tax amount - $0. Even though this object has a tax rate of 8.5%, tax is not calculated by the Square API.
+    * **TO DO** Add tax calculation to the checkout flow. For some reason, when it is done on [/create-order](routes/index.js#68), all child lineItems have the same tax applied.
+
+1. The next route, [cart.js](routes/cart.js), handles manipulation of the order object prior to entering the checkout flow. It's first controller, [/cart/order-info](routes/cart.js#L42), simply returns the full order object. If you have not made any changes to the order object since it was made, the controller will return the same output as when the order was created.
+    Continuing on with our example:
+    ```bash
+    curl -X POST http://localhost:3001/cart/order-info -d "orderId=mTRO3idc5wZx6NICzqFLWpRwqzUZY"
+    ```
+
+1. The next controller in the cart route, `router.post("/update-order-add-item", ...` in [route/cart.js](route/cart.js#L68) adds an item to the order. This is used to add a catalog item to the order that does not already exist within it. 
+    Let's add some Steak Tacos to our order:
+    ```bash
+    curl -X POST http://localhost:3001/cart/update-order-add-item -d "orderId=mTRO3idc5wZx6NICzqFLWpRwqzUZY&itemVarI=QBUO6M3ZFLPIDLVXKBWJQLBE&itemQuantity=1&version=1&locationId=ZM4H2ZE597J7A"
+    ```
+    And the route returns our updated order:
+    ```json
+    {
+      "result": "Success! Order updated!",
+      "order": {
+        "id": "mTRO3idc5wZx6NICzqFLWpRwqzUZY",
+        "locationId": "ZM4H2ZE597J7A",
+        "source": {
+          "name": "Sandbox for square-express-shopping-cart"
+        },
+        "lineItems": [
+          {
+            "uid": "RklCoCK9QwKd0nZHGKbHGC",
+            "name": "Bacon Cheeseburger",
+            "quantity": "1",
+            "catalogObjectId": "LMT7BZGYJSHVFUZWVJHTNYJV",
+            "variationName": "Regular",
+            "basePriceMoney": {
+              "amount": 995,
+              "currency": "USD"
+            },
+            "variationTotalPriceMoney": {
+              "amount": 995,
+              "currency": "USD"
+            },
+            "grossSalesMoney": {
+              "amount": 995,
+              "currency": "USD"
+            },
+            "totalTaxMoney": {
+              "amount": 0,
+              "currency": "USD"
+            },
+            "totalDiscountMoney": {
+              "amount": 0,
+              "currency": "USD"
+            },
+            "totalMoney": {
+              "amount": 995,
+              "currency": "USD"
+            }
+          },
+          {
+            "uid": "C0V0AeMKVBLjfrgyO8Z0KC",
+            "name": "Steak Tacos",
+            "quantity": "1",
+            "catalogObjectId": "QBUO6M3ZFLPIDLVXKBWJQLBE",
+            "variationName": "Regular",
+            "basePriceMoney": {
+              "amount": 695,
+              "currency": "USD"
+            },
+            "variationTotalPriceMoney": {
+              "amount": 695,
+              "currency": "USD"
+            },
+            "grossSalesMoney": {
+              "amount": 695,
+              "currency": "USD"
+            },
+            "totalTaxMoney": {
+              "amount": 0,
+              "currency": "USD"
+            },
+            "totalDiscountMoney": {
+              "amount": 0,
+              "currency": "USD"
+            },
+            "totalMoney": {
+              "amount": 695,
+              "currency": "USD"
+            }
+          }
+        ],
+        "netAmounts": {
+          "totalMoney": {
+            "amount": 1690,
+            "currency": "USD"
+          },
+          "taxMoney": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "discountMoney": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "tipMoney": {
+            "amount": 0,
+            "currency": "USD"
+          },
+          "serviceChargeMoney": {
+            "amount": 0,
+            "currency": "USD"
+          }
+        },
+        "createdAt": "2021-03-01T02:55:57.764Z",
+        "updatedAt": "2021-03-01T03:07:58.110Z",
+        "state": "OPEN",
+        "version": 2,
+        "totalMoney": {
+          "amount": 1690,
+          "currency": "USD"
+        },
+        "totalTaxMoney": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalDiscountMoney": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalTipMoney": {
+          "amount": 0,
+          "currency": "USD"
+        },
+        "totalServiceChargeMoney": {
+          "amount": 0,
+          "currency": "USD"
+        }
+      }
+    }
+    ```

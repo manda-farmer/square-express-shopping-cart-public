@@ -17,7 +17,8 @@ limitations under the License.
 import express from 'express';
 
 import { randomBytes } from 'crypto';
-import { catalogApi, locationsApi, ordersApi } from '../util/square-client';
+import { catalogApi, locationsApi } from '../util/square-client';
+import { Cart } from '../models/cart';
 import CatalogList from '../models/catalog-list';
 
 const router = express.Router();
@@ -26,7 +27,8 @@ const router = express.Router();
  * Matches: GET /
  *
  * Description:
- *  Retrieves list of locations and CatalogItems, then renders views/index.pug template.
+ *  Retrieves list of locations and CatalogItems, and returns them using
+ *  the CatalogList.items data model that parses BigInt to strings.
  *  Note: In this example we only use the first location in the list.
  */
 router.get("/", async (req, res, next) => {
@@ -38,10 +40,10 @@ router.get("/", async (req, res, next) => {
     const { result: { locations } } = await locationsApi.listLocations();
     // Get CatalogItem and CatalogImage object
     const { result: { objects } } = await catalogApi.listCatalog(undefined, types);
-    // Returns the catalog and location ID, since we don't need to
+    // Returns the catalog and first location ID, since we don't need to
     // print the full locationInfo array
-    res.send({
-      locationId: locations.id,
+    res.json({
+      locationId: locations[0].id,
       items: new CatalogList(objects).items
     });
   } catch (error) {
@@ -57,7 +59,7 @@ router.get("/", async (req, res, next) => {
  *  Learn more about Orders here: https://developer.squareup.com/docs/orders-api/what-it-does
  *
  *  Once the order has been successfully created, the order's information is
- *  returned with res.send({}). This allows for shopping cart data that is 
+ *  returned with res.json({}). This allows for shopping cart data that is 
  *  pre-sync'd with Square's API, and updates in real-time.
  * 
  * Request Body:
@@ -82,8 +84,9 @@ router.post("/create-order", async (req, res, next) => {
         }]
       }
     };
-    const { result: { order } } = await ordersApi.createOrder(orderRequestBody);
-    res.send(
+    const orderNew = new Cart(null, orderRequestBody);
+    const order = await orderNew.create();
+    res.json(
       {
         result: "Success! Order created!",
         order: order
